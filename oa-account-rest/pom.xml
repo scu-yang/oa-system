@@ -42,5 +42,17 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <artifactId>market-collector-api</artifactId>
+            <groupId>com.tove</groupId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>oa-account-api</artifactId>
+            <groupId>com.tove</groupId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>
