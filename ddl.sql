@@ -1,7 +1,11 @@
 CREATE TABLE `oa_user` (
     `id` BIGINT(20) UNSIGNED auto_increment COMMENT '主键',
-    `uid` BIGINT(20) UNSIGNED NOT NULL COMMENT '系统uid',
+    `uid` BIGINT(20) UNSIGNED UNIQUE NOT NULL COMMENT '系统uid',
+    `account_uid` BIGINT(20) UNSIGNED UNIQUE NOT NULL COMMENT 'account uid',
     `pwd` varchar(100) NOT NULL COMMENT 'password',
+    `email` varchar(20) NULL COMMENT 'email',
+    `phone` varchar(20) NULL COMMENT 'phone',
+    `pwd_had_fix` tinyint(1) NOT NULL DEFAULT 0 COMMENT '初始密码是否修改',
     `name` varchar(50) NOT NULL COMMENT '姓名',
     `sex` tinyint(1) NULL COMMENT '男(0) 女(1)',
     `birth_date` TIMESTAMP NULL COMMENT '出生年月',

@@ -4,9 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.tove.base.rbac.dao.*;
 import com.tove.base.rbac.model.*;
 import com.tove.base.rbac.service.AccountService;
-import com.tove.infra.common.BaseErrorCode;
-import com.tove.infra.common.BaseException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -169,13 +166,13 @@ public class AccountServiceImpl implements AccountService {
         QueryWrapper<RelateGroupRole> wrapper = new QueryWrapper<>();
         wrapper.eq("rid", rid);
         wrapper.eq("ug_id", ugid);
-        int rows = relateGroupRoleMapper.delete(wrapper);
 
         // 删除这个组里面所有用户的缓存
         List<User> userList = getUserInGroup(ugid);
         for(User user: userList){
             cacheService.clearUserAllCache(user.getId());
         }
+        int rows = relateGroupRoleMapper.delete(wrapper);
 
         return rows>0;
     }

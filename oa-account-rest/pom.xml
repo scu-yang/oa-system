@@ -64,7 +64,10 @@
         <dependency>
             <artifactId>oa-account-api</artifactId>
             <groupId>com.tove</groupId>
-            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <artifactId>base-rbac</artifactId>
+            <groupId>com.tove</groupId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

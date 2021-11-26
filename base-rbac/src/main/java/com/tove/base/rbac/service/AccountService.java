@@ -7,11 +7,7 @@ import com.tove.base.rbac.model.UserGroup;
 
 import java.util.List;
 
-/**
- * 1. 给用户添加权限，通过关联角色, 关联用户组需立即生效
- * 2. 给原有角色新增权限, 允许有延迟
- * 3.
- */
+
 public interface AccountService {
 
     /** 获取一个用户的所有权限 */

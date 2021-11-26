@@ -33,7 +33,6 @@
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
-            <version>3.0.4</version>
         </dependency>
     </dependencies>
 </project>
