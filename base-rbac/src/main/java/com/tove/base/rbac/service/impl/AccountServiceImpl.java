@@ -8,6 +8,7 @@ import com.tove.infra.common.BaseErrorCode;
 import com.tove.infra.common.BaseException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -132,6 +133,7 @@ public class AccountServiceImpl implements AccountService {
         relateRolePower.setPid(pid);
         relateRolePower.setRid(rid);
         int rows = relateRolePowerMapper.insert(relateRolePower);
+        cacheService.clearAllCache();
         return rows>0;
     }
 
@@ -142,6 +144,7 @@ public class AccountServiceImpl implements AccountService {
         wrapper.eq("pid", pid);
         int rows = relateRolePowerMapper.delete(wrapper);
         // TODO 大面积失效
+        cacheService.clearAllCache();
         return rows>0;
     }
 
@@ -151,6 +154,13 @@ public class AccountServiceImpl implements AccountService {
         relateGroupRole.setRid(rid);
         relateGroupRole.setUgId(ugid);
         int rows = relateGroupRoleMapper.insert(relateGroupRole);
+
+        // 删除这个组里面所有用户的缓存
+        List<User> userList = getUserInGroup(ugid);
+        for(User user: userList){
+            cacheService.clearUserAllCache(user.getId());
+        }
+
         return rows>0;
     }
 
@@ -160,7 +170,12 @@ public class AccountServiceImpl implements AccountService {
         wrapper.eq("rid", rid);
         wrapper.eq("ug_id", ugid);
         int rows = relateGroupRoleMapper.delete(wrapper);
-        // TODO 大面积失效
+
+        // 删除这个组里面所有用户的缓存
+        List<User> userList = getUserInGroup(ugid);
+        for(User user: userList){
+            cacheService.clearUserAllCache(user.getId());
+        }
 
         return rows>0;
     }
@@ -171,6 +186,8 @@ public class AccountServiceImpl implements AccountService {
         relateGroupUser.setUid(uid);
         relateGroupUser.setUgId(ugid);
         int rows = relateGroupUserMapper.insert(relateGroupUser);
+        cacheService.clearUserAllCache(uid);
+        cacheService.getUserInGroupCache().invalidate(ugid);
         return rows>0;
     }
 
@@ -180,7 +197,8 @@ public class AccountServiceImpl implements AccountService {
         wrapper.eq("uid", uid);
         wrapper.eq("ug_id", ugid);
         int rows = relateGroupUserMapper.delete(wrapper);
-        cacheService.getUserGroupCache().invalidate(uid);
+        cacheService.clearUserAllCache(uid);
+        cacheService.getUserInGroupCache().invalidate(ugid);
         return rows>0;
     }
 
@@ -190,6 +208,8 @@ public class AccountServiceImpl implements AccountService {
         relateUserRole.setRid(rid);
         relateUserRole.setUid(uid);
         int rows = relateUserRoleMapper.insert(relateUserRole);
+        cacheService.getUserRoleCache().invalidate(uid);
+        cacheService.getUserPowerCache().invalidate(uid);
         return rows>0;
     }
 
@@ -201,6 +221,7 @@ public class AccountServiceImpl implements AccountService {
         int rows = relateUserRoleMapper.delete(wrapper);
         // TODO 延时双删
         cacheService.getUserRoleCache().invalidate(uid);
+        cacheService.getUserPowerCache().invalidate(uid);
         return rows>0;
     }
 
@@ -208,11 +229,7 @@ public class AccountServiceImpl implements AccountService {
     public long addUser(String name) {
         User user = new User();
         user.setUsername(name);
-        try {
-            userMapper.insert(user);
-        }catch (DuplicateKeyException e){
-            throw new BaseException(BaseErrorCode.DUPLICATE_KEY);
-        }
+        userMapper.insert(user);
         return user.getId();
     }
 
@@ -220,11 +237,7 @@ public class AccountServiceImpl implements AccountService {
     public long addGroup(String name) {
         UserGroup userGroup = new UserGroup();
         userGroup.setName(name);
-        try {
-            userGroupMapper.insert(userGroup);
-        }catch (DuplicateKeyException e){
-            throw new BaseException(BaseErrorCode.DUPLICATE_KEY);
-        }
+        userGroupMapper.insert(userGroup);
         return userGroup.getId();
     }
 
@@ -232,11 +245,7 @@ public class AccountServiceImpl implements AccountService {
     public long addRole(String name) {
         Role role = new Role();
         role.setName(name);
-        try {
-            roleMapper.insert(role);
-        }catch (DuplicateKeyException e){
-            throw new BaseException(BaseErrorCode.DUPLICATE_KEY);
-        }
+        roleMapper.insert(role);
         return role.getId();
     }
 
@@ -244,35 +253,72 @@ public class AccountServiceImpl implements AccountService {
     public long addPower(String name) {
         Power power = new Power();
         power.setName(name);
-        try {
-            powerMapper.insert(power);
-        }catch (DuplicateKeyException e){
-            throw new BaseException(BaseErrorCode.DUPLICATE_KEY);
-        }
+        powerMapper.insert(power);
         return power.getId();
     }
 
     @Override
+    @Transactional
     public boolean deleteUser(Long uid) {
         int rows  = userMapper.deleteById(uid);
+
+        QueryWrapper<RelateGroupUser> wrapperGroup = new QueryWrapper<>();
+        wrapperGroup.eq("uid",uid);
+        relateGroupUserMapper.delete(wrapperGroup);
+
+        QueryWrapper<RelateUserRole> wrapperRole = new QueryWrapper<>();
+        wrapperRole.eq("uid", uid);
+        relateUserRoleMapper.delete(wrapperRole);
+
+        cacheService.clearUserAllCache(uid);
         return rows>0;
     }
 
     @Override
+    @Transactional
     public boolean deleteGroup(Long ugid) {
         int rows = userGroupMapper.deleteById(ugid);
+
+        QueryWrapper<RelateGroupUser> wrapperGroup = new QueryWrapper<>();
+        wrapperGroup.eq("ug_id",ugid);
+        relateGroupUserMapper.delete(wrapperGroup);
+
+        QueryWrapper<RelateGroupRole> wrapperRole = new QueryWrapper<>();
+        wrapperRole.eq("ug_id",ugid);
+        relateGroupRoleMapper.delete(wrapperRole);
+
         return rows>0;
     }
 
     @Override
+    @Transactional
     public boolean deleteRole(Long rid) {
         int rows = roleMapper.deleteById(rid);
+
+        QueryWrapper<RelateGroupRole> wrapperRole1 = new QueryWrapper<>();
+        wrapperRole1.eq("r_id",rid);
+        relateGroupRoleMapper.delete(wrapperRole1);
+
+        QueryWrapper<RelateUserRole> wrapperRole2 = new QueryWrapper<>();
+        wrapperRole2.eq("r_id", rid);
+        relateUserRoleMapper.delete(wrapperRole2);
+
+        QueryWrapper<RelateRolePower> wrapperPower = new QueryWrapper<>();
+        wrapperPower.eq("r_id", rid);
+        relateRolePowerMapper.delete(wrapperPower);
+
         return rows>0;
     }
 
     @Override
+    @Transactional
     public boolean deletePower(Long pid) {
         int rows = powerMapper.deleteById(pid);
+
+        QueryWrapper<RelateRolePower> wrapperPower = new QueryWrapper<>();
+        wrapperPower.eq("p_id", pid);
+        relateRolePowerMapper.delete(wrapperPower);
+
         return rows>0;
     }
 
