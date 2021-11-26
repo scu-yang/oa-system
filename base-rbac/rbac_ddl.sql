@@ -1,0 +1,76 @@
+-- refer https://zhuanlan.zhihu.com/p/63769951
+-- https://static.woshipm.com/TTW_QUESTION_201807_20180730221217_0565.png
+-- date: 21-11-23
+CREATE DATABASE IF NOT EXISTS `base_rbac` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_general_ci;
+
+CREATE TABLE `user` (
+`id` BIGINT(20) UNSIGNED auto_increment COMMENT '主键',
+`username` varchar(50) NOT NULL COMMENT '用户名',
+`db_create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+`db_modify_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+PRIMARY KEY(`id`)
+)ENGINE=InnoDB AUTO_INCREMENT=100000 COMMENT = '用户信息表';
+
+CREATE TABLE `relate_user_role` (
+`id` BIGINT(20) UNSIGNED auto_increment COMMENT '主键',
+`uid` BIGINT(20) UNSIGNED COMMENT 'user id',
+`rid` BIGINT(20) UNSIGNED COMMENT 'role id',
+`db_create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+`db_modify_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+unique INDEX `uniq_uid_rid` (`uid`, `rid`) USING BTREE,
+PRIMARY KEY(`id`)
+)ENGINE=InnoDB COMMENT = '用户角色关系表';
+
+CREATE TABLE `role` (
+`id` BIGINT(20) UNSIGNED auto_increment COMMENT '主键',
+`name` VARCHAR(63) NOT NULL COMMENT '角色名',
+`db_create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+`db_modify_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+PRIMARY KEY(`id`)
+)ENGINE=InnoDB COMMENT = '用户信息表';
+
+CREATE TABLE `relate_role_power` (
+`id` BIGINT(20) UNSIGNED auto_increment COMMENT '主键',
+`rid` BIGINT(20) UNSIGNED COMMENT 'role id',
+`pid` BIGINT(20) UNSIGNED COMMENT 'role id',
+`db_create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+`db_modify_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+unique INDEX `uniq_rid_pid` (`rid`, `pid`) USING BTREE,
+PRIMARY KEY(`id`)
+)ENGINE=InnoDB COMMENT = '角色权限关系表';
+
+CREATE TABLE `power` (
+`id` BIGINT(20) UNSIGNED auto_increment COMMENT '主键',
+`name` VARCHAR(63) NOT NULL COMMENT '权限名',
+`db_create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+`db_modify_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+PRIMARY KEY(`id`)
+)ENGINE=InnoDB COMMENT = '用户信息表';
+
+CREATE TABLE `user_group` (
+`id` BIGINT(20) UNSIGNED auto_increment COMMENT '主键',
+`name` VARCHAR(63) unique NOT NULL COMMENT '用户组名称',
+`db_create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+`db_modify_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+PRIMARY KEY(`id`)
+)ENGINE=InnoDB AUTO_INCREMENT=100000 COMMENT = '用户信息表';
+
+CREATE TABLE `relate_group_user` (
+`id` BIGINT(20) UNSIGNED auto_increment COMMENT '主键',
+`ug_id` BIGINT(20) UNSIGNED COMMENT 'user group id',
+`uid` BIGINT(20) UNSIGNED COMMENT 'role id',
+`db_create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+`db_modify_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+INDEX `idx_ugid_uid` (`ug_id`,`uid`) USING BTREE,
+PRIMARY KEY(`id`)
+)ENGINE=InnoDB COMMENT = '用户组用户关系表';
+
+CREATE TABLE `relate_group_role` (
+`id` BIGINT(20) UNSIGNED auto_increment COMMENT '主键',
+`ug_id` BIGINT(20) UNSIGNED COMMENT 'user group id',
+`rid` BIGINT(20) UNSIGNED COMMENT 'role id',
+`db_create_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+`db_modify_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+INDEX `idx_ugid_rid` (`ug_id`,`rid`) USING BTREE,
+PRIMARY KEY(`id`)
+)ENGINE=InnoDB COMMENT = '用户组角色关系表';
